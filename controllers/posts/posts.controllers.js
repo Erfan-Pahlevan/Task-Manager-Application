@@ -66,7 +66,33 @@ const deleteOnePost = async (req, res) => {
 
 async function getAll(req, res) {
   try {
-    const findPosts = await postModel.find();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const { search, sort } = req.query;
+    const filter = {};
+
+    if (search) {
+      filter.title = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    const sortOrder = {};
+    if (sort) {
+      const order = sort.startsWith("-") ? -1 : 1;
+      const field = sort.replace("-", "");
+      sortOrder[field] = order;
+    }
+
+    paginationCondition = {
+      page,
+      limit,
+      sort: sortOrder,
+    };
+
+    const findPosts = await postModel.paginate(filter, paginationCondition);
+
     if (!findPosts) {
       return res.status(200).json({
         message: "No users in the database",

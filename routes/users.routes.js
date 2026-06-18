@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../config/multer.config");
 
 const {
   checkAuthHeader,
@@ -13,7 +14,6 @@ const {
   getUserData,
   getUserById,
   getSearchResults,
-  showWelcomeMsg,
   getProducts,
   getProductById,
   postUserData,
@@ -21,6 +21,7 @@ const {
   update,
   deleteOne,
   profile,
+  uploadAvatar,
 } = require("../controllers/users/users.controllers");
 
 router.get("/", (req, res) => {
@@ -39,10 +40,10 @@ router.get("/user", getUserData);
 // route params:
 router.get("/user/:id", getUserById);
 
-router.get("/dashboard", auth, showWelcomeMsg);
+router.get("/dashboard", auth);
 router.get("/profile", auth, profile);
-router.get("/admin", auth, showWelcomeMsg);
-router.post("/dashboard", checkAuthHeader, showWelcomeMsg);
+router.get("/admin", auth);
+router.post("/dashboard", checkAuthHeader);
 
 // Method using local middleware auth:
 
@@ -50,5 +51,6 @@ router.get("/products/:id", getProductById);
 router.get("/products", getProducts);
 
 router.get("/search", getSearchResults);
+router.post("/upload-avatar", auth, upload.single("avatar"), uploadAvatar);
 
 module.exports = router;

@@ -31,6 +31,8 @@ app.use(express.json());
 
 app.use(loggerMiddleware);
 
+app.use("/uploads", express.static("uploads"));
+
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use(errorMiddleware);

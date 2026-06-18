@@ -1,9 +1,7 @@
-require("dotenv").config();
-
 const userModel = require("../../models/users.model");
 const userService = require("../../services/users.service");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+
+const fileService = require("../../services/files.service");
 
 async function register(req, res) {
   try {
@@ -113,10 +111,24 @@ const getSearchResults = (req, res) => {
   }
 };
 
-const showWelcomeMsg = (req, res) => {
-  return res.json({
-    message: "Welcome",
-  });
+const uploadAvatar = async (req, res) => {
+  const { originalname, filename, mimetype, size } = req.file;
+
+  const { userId } = req;
+
+  fileData = {
+    originalname,
+    filename,
+    mimetype,
+    size,
+    path: filename,
+    fieldname: "avatar",
+  };
+  const newfile = await fileService.upload(fileData);
+
+  await userService.setImage(newfile._id, userId);
+
+  res.status(200).json(newfile);
 };
 
 const getProducts = (req, res) => {
@@ -148,12 +160,39 @@ const getProductById = (req, res) => {
 // Get all users
 async function getAll(req, res) {
   try {
-    if (!req.headers.authorization) {
-      return res.status(401).json({
-        message: "Unauthorized: Access denied. No token provided",
-      });
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const { role, search, sort } = req.query;
+    const filter = {};
+
+    if (role) {
+      filter.role = role;
     }
-    const findUsers = await userModel.find();
+
+    if (search) {
+      filter.username = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    const sortOrder = {};
+    if (sort) {
+      const order = sort.startsWith("-") ? -1 : 1;
+      const field = sort.replace("-", "");
+      sortOrder[field] = order;
+    }
+
+    paginationCondition = {
+      page,
+      limit,
+      sort: sortOrder,
+    };
+
+    // search based on post title
+    // pagination on users and posts
+
+    const findUsers = await userModel.paginate(filter, paginationCondition);
     if (!findUsers) {
       return res.status(200).json({
         message: "No users in the database",
@@ -259,11 +298,11 @@ module.exports = {
   getUserData,
   getUserById,
   getSearchResults,
-  showWelcomeMsg,
   getProducts,
   getProductById,
   getDetail,
   update,
   deleteOne,
   profile,
+  uploadAvatar,
 };

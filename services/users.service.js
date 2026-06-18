@@ -14,6 +14,13 @@ const isValidPassword = async (password, findUser) => {
   return bcrypt.compare(password, findUser.password);
 };
 
+async function setImage(fileId, userId) {
+  const findUser = await findUserById(userId);
+  findUser.image = fileId;
+  findUser.save();
+  return findUser;
+}
+
 const registerUser = async (username, password, role) => {
   if (!username || !password) {
     throw new Error("username and password are required");
@@ -29,6 +36,8 @@ const registerUser = async (username, password, role) => {
 
 module.exports = {
   findUsername,
+  findUserById,
   isValidPassword,
   registerUser,
+  setImage,
 };
