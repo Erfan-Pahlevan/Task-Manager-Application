@@ -6,6 +6,9 @@ const postRoutes = require("./routes/posts.routes");
 const loggerMiddleware = require("./middlewares/logger.middleware");
 const errorMiddleware = require("./middlewares/error.middleware");
 const mongoose = require("mongoose");
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 async function connectDB() {
   try {
@@ -25,7 +28,17 @@ const app = express();
 
 // middleware for parsing the body
 app.use(express.json());
-
+app.use(
+  cors({
+    origin: "https://frontend.com",
+  })
+);
+const limiter = rateLimit({
+  windowMs: 15 * 1000 * 60,
+  max: 100,
+})
+app.use(limiter);
+app.use(helmet());
 app.use(loggerMiddleware);
 
 app.use("/uploads", express.static("uploads"));
