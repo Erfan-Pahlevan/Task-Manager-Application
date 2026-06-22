@@ -13,7 +13,7 @@ function validateRegister(req, res, next) {
   if (!username || !password || !role) {
     return res.status(400).json({
       status: 400,
-      message: "username and password are required",
+      message: "username, password and role are required",
     });
   }
 

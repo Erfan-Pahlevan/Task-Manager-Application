@@ -1,7 +1,6 @@
 const userModel = require("../models/users.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { findPost } = require("./posts.service");
 
 async function createToken(findUser, JWTSECRET) {
   return jwt.sign(
@@ -16,7 +15,7 @@ const verifyToken = async (token, JWTSECRET) => {
   return jwt.verify(token, JWTSECRET);
 };
 
-const findUsername = async (username) => {
+const findByUsername = async (username) => {
   return userModel.findOne({ username }).select("+password");
 };
 
@@ -36,9 +35,6 @@ async function setImage(fileId, userId) {
 }
 
 const registerUser = async (username, password, role) => {
-  if (!username || !password) {
-    throw new Error("username and password are required");
-  }
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await userModel.create({
     username,
@@ -70,6 +66,13 @@ const findAllUsers = async ({ page, limit, role, search, sort }) => {
   return userModel.paginate(filter, options);
 };
 
+const updateUser = async (id, updates) => {
+  return userModel.findByIdAndUpdate(id, updates, {
+    returnDocument: "after",
+    runValidators: true,
+  });
+};
+
 const deleteUser = async (id) => {
   return userModel.findByIdAndDelete(id);
 };
@@ -77,7 +80,8 @@ const deleteUser = async (id) => {
 module.exports = {
   createToken,
   verifyToken,
-  findUsername,
+  findByUsername,
+  updateUser,
   findUserById,
   isValidPassword,
   registerUser,

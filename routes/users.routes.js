@@ -12,17 +12,12 @@ const {
 const {
   register,
   login,
-  getAll,
-  getUserById,
-  getSearchResults,
-  getProducts,
-  getProductById,
-  postUserData,
-  getDetail,
-  update,
-  deleteOne,
-  profile,
+  getProfile,
   uploadAvatar,
+  getAllUsers,
+  getUserDetail,
+  updateUser,
+  deleteUser,
 } = require("../controllers/users/users.controllers");
 
 router.get("/", (req, res) => {
@@ -32,22 +27,12 @@ router.get("/", (req, res) => {
 router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
 
-router.get("/get-all", getAll);
-router.get("/get-detail/:id", getDetail);
-router.put("/update", update);
-router.delete("/delete", deleteOne);
-
-// route params:
-router.get("/user/:id", getUserById);
-
-router.get("/dashboard", auth);
-router.get("/profile", auth, profile);
-router.get("/admin", auth);
-
-router.get("/products/:id", getProductById);
-router.get("/products", getProducts);
-
-router.get("/search", getSearchResults);
+router.get("/profile", auth, getProfile);
 router.post("/upload-avatar", auth, upload.single("avatar"), uploadAvatar);
+
+router.get("/", getAllUsers);
+router.get("/:id", getUserDetail);
+router.patch("/:id", updateUser);
+router.delete("/:id", deleteUser);
 
 module.exports = router;
