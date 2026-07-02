@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const userRoutes = require("./routes/users.routes");
-const postRoutes = require("./routes/posts.routes");
+const taskRoutes = require("./routes/tasks.routes");
 const loggerMiddleware = require("./middlewares/logger.middleware");
 const errorMiddleware = require("./middlewares/error.middleware");
 const mongoose = require("mongoose");
@@ -33,7 +33,7 @@ app.use(loggerMiddleware);
 app.use("/uploads", express.static("uploads"));
 
 app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
+app.use("/tasks", taskRoutes);
 app.use(errorMiddleware);
 
 app.listen(process.env.PORT, () => {
