@@ -15,8 +15,8 @@ const verifyToken = async (token, JWTSECRET) => {
   return jwt.verify(token, JWTSECRET);
 };
 
-const findByUsername = async (username) => {
-  return userModel.findOne({ username }).select("+password");
+const findByMobile = async (mobile) => {
+  return userModel.findOne({ mobile }).select("+password");
 };
 
 const findUserById = async (userId) => {
@@ -34,10 +34,10 @@ async function setImage(fileId, userId) {
   return findUser;
 }
 
-const registerUser = async (username, password, role) => {
+const registerUser = async (mobile, password, role) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await userModel.create({
-    username,
+    mobile,
     password: hashedPassword,
     role,
   });
@@ -80,7 +80,7 @@ const deleteUser = async (id) => {
 module.exports = {
   createToken,
   verifyToken,
-  findByUsername,
+  findByMobile,
   updateUser,
   findUserById,
   isValidPassword,

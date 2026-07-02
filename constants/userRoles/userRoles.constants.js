@@ -1,8 +1,7 @@
 const userRoles = Object.freeze({
-  DRIVER: "driver",
-  SUPERADMIN: "superAdmin",
-  PASSENGER: "passenger",
+  SUPERADMIN: "superadmin",
   ADMIN: "admin",
+  USER: "user",
 });
 
 module.exports = userRoles;

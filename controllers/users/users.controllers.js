@@ -2,17 +2,36 @@ const userService = require("../../services/users.service");
 
 const fileService = require("../../services/files.service");
 
-const register = async (req, res) => {
-  const { username, password, role } = req.body;
+const registerAdmin = async (req, res) => {
+  const { userId } = req;
 
-  const findUser = await userService.findByUsername(username);
+  const { mobile, password, role } = req.body;
+
+  const findUser = await userService.findByMobile(mobile);
   if (findUser) {
     return res.status(409).json({
-      message: "Username already taken",
+      message: "A user is already registered with this phone number",
     });
   }
 
-  const user = await userService.registerUser(username, password, role);
+  const user = await userService.registerUser(mobile, password, role);
+
+  res.status(201).json({
+    message: "User registered successfully",
+  });
+};
+
+const register = async (req, res) => {
+  const { mobile, password, role } = req.body;
+
+  const findUser = await userService.findByMobile(mobile);
+  if (findUser) {
+    return res.status(409).json({
+      message: "A user is already registered with this phone number",
+    });
+  }
+
+  const user = await userService.registerUser(mobile, password, role);
 
   res.status(201).json({
     message: "User registered successfully",
@@ -20,9 +39,9 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { mobile, password } = req.body;
 
-  const findUser = await userService.findByUsername(username);
+  const findUser = await userService.findByMobile(mobile);
   if (!findUser) {
     return res.status(404).json({
       message: "User not found",
@@ -156,6 +175,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+  registerAdmin,
   register,
   login,
   getProfile,
