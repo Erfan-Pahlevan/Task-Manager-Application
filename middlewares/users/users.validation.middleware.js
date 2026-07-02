@@ -8,21 +8,22 @@ function validateRegister(req, res, next) {
     });
   }
 
-  const { username, password, role } = req.body;
+  const { mobile, password, role } = req.body;
 
-  if (!username || !password || !role) {
+  if (!mobile || !password || !role) {
     return res.status(400).json({
       status: 400,
-      message: "username, password and role are required",
+      message: "mobile, password and role are required",
     });
   }
 
-  if (typeof username !== "string" || username.trim().length < 3) {
-    return res.status(400).json({
-      status: 400,
-      message: "username must be at least 3 characters",
-    });
-  }
+  // TODO: write validator for mobile
+  // if (typeof mobile !== "string" || username.trim().length < 3) {
+  //   return res.status(400).json({
+  //     status: 400,
+  //     message: "username must be at least 3 characters",
+  //   });
+  // }
 
   if (typeof password !== "string" || password.length < 6) {
     return res.status(400).json({
@@ -55,21 +56,21 @@ function validateLogin(req, res, next) {
     });
   }
 
-  const { username, password } = req.body;
+  const { mobile, password } = req.body;
 
-  if (!username || !password) {
+  if (!mobile || !password) {
     return res.status(400).json({
       status: 400,
       message: "username and password are required",
     });
   }
 
-  if (typeof username !== "string") {
-    return res.status(400).json({
-      status: 400,
-      message: "username must be a string",
-    });
-  }
+  // if (typeof mobile !== "string") {
+  //   return res.status(400).json({
+  //     status: 400,
+  //     message: "username must be a string",
+  //   });
+  // }
 
   if (typeof password !== "string") {
     return res.status(400).json({

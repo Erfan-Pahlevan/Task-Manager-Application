@@ -11,7 +11,7 @@ const rateLimitMiddleware = require("./middlewares/rateLimit.middleware");
 
 async function connectDB() {
   try {
-    (await mongoose.connect("mongodb://127.0.0.1:27017/shop"),
+    (await mongoose.connect("mongodb://127.0.0.1:27017/task-manager"),
       console.log("MongoDB connected"));
   } catch (err) {
     console.error(err);

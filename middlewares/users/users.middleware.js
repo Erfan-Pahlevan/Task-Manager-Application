@@ -9,7 +9,7 @@ const auth = async (req, res, next) => {
 
   if (!authHeader) {
     return res.status(401).json({
-      message: "Unauthorized: Ur not allowed",
+      message: "Unauthorized: No provided token",
     });
   }
 
@@ -28,7 +28,7 @@ const auth = async (req, res, next) => {
     next();
   } catch (err) {
     return res.status(401).json({
-      message: "Unauthorized: lol",
+      message: "Unauthorized: Wrong token format",
       error: err.message,
     });
   }
@@ -51,6 +51,27 @@ const isOwner = async (req, res, next) => {
   next();
 };
 
+const isSameUser = async (req, res, next) => {
+  const { userId } = req;
+
+  const { id } = req.params;
+
+  const findUser = await userService.findUserById(id);
+
+  if (!findUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  console.log(findUser);
+  console.log(userId);
+
+  if (findUser._id.toString() !== userId.toString()) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  next();
+};
+
 function role(roles) {
   return async (req, res, next) => {
     const { userId } = req;
@@ -60,6 +81,8 @@ function role(roles) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    console.log(findUser);
+
     if (!roles.includes(findUser.role)) {
       return res.status(403).json({ message: "Forbidden" });
     }
@@ -68,4 +91,4 @@ function role(roles) {
   };
 }
 
-module.exports = { auth, isOwner, role };
+module.exports = { auth, isOwner, isSameUser, role };
