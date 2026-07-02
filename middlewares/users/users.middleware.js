@@ -1,5 +1,5 @@
 const userService = require("../../services/users.service");
-const postService = require("../../services/posts.service");
+const postService = require("../../services/tasks.service");
 
 const userModel = require("../../models/users.model");
 
