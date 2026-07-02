@@ -1,14 +1,8 @@
 const express = require("express");
 const router = express.Router();
-
-const {
-  auth,
-  role,
-} = require("../middlewares/users/users.middleware");
-
-const {
-  isTaskOwner,
-} = require("../middlewares/tasks/tasks.middleware");
+const userRoles = require("../constants/userRoles/userRoles.constants");
+const { auth, role } = require("../middlewares/users/users.middleware");
+const { isTaskOwner } = require("../middlewares/tasks/tasks.middleware");
 
 const {
   validateCreateTask,
@@ -33,30 +27,11 @@ const {
   getListAdmin,
 } = require("../controllers/tasks/tasks.controllers");
 
+const adminRoles = [userRoles.ADMIN, userRoles.SUPERADMIN];
 
-router.post(
-  "/create",
-  auth,
-  validateCreateTask,
-  createTask
-);
+router.post("/create", auth, validateCreateTask, createTask);
 
-
-router.post(
-  "/create-admin",
-  auth,
-  role(["admin", "super_admin"]),
-  validateCreateTaskAdmin,
-  createTaskAdmin
-);
-
-
-router.get(
-  "/get-my-task",
-  auth,
-  getMyTasks
-);
-
+router.get("/get-my-task", auth, getMyTasks);
 
 router.get(
   "/get-detail/:id",
@@ -65,7 +40,6 @@ router.get(
   isTaskOwner,
   getTaskDetail
 );
-
 
 router.patch(
   "/update/:id",
@@ -76,7 +50,6 @@ router.patch(
   updateTask
 );
 
-
 router.patch(
   "/change-status/:id",
   auth,
@@ -86,7 +59,6 @@ router.patch(
   changeTaskStatus
 );
 
-
 router.delete(
   "/delete/:id",
   auth,
@@ -94,7 +66,6 @@ router.delete(
   isTaskOwner,
   deleteTask
 );
-
 
 router.patch(
   "/remove-attachment/:id",
@@ -105,18 +76,20 @@ router.patch(
   removeAttachment
 );
 
-
-router.get(
-  "/get-list-admin",
+router.post(
+  "/create-admin",
   auth,
-  role(["admin", "super_admin"]),
-  getListAdmin
+  role(adminRoles),
+  validateCreateTaskAdmin,
+  createTaskAdmin
 );
+
+router.get("/get-list-admin", auth, role(adminRoles), getListAdmin);
 
 router.get(
   "/get-detail-admin/:id",
   auth,
-  role(["admin", "super_admin"]),
+  role(adminRoles),
   validateTaskIdParam,
   getTaskDetail
 );
@@ -124,7 +97,7 @@ router.get(
 router.patch(
   "/update-admin/:id",
   auth,
-  role(["admin", "super_admin"]),
+  role(adminRoles),
   validateTaskIdParam,
   validateUpdateTaskAdmin,
   updateTaskAdmin
@@ -133,7 +106,7 @@ router.patch(
 router.patch(
   "/change-status-admin/:id",
   auth,
-  role(["admin", "super_admin"]),
+  role(adminRoles),
   validateTaskIdParam,
   validateChangeStatus,
   changeTaskStatus
@@ -142,7 +115,7 @@ router.patch(
 router.patch(
   "/remove-attachment-admin/:id",
   auth,
-  role(["admin", "super_admin"]),
+  role(adminRoles),
   validateTaskIdParam,
   validateRemoveAttachment,
   removeAttachment
@@ -151,7 +124,7 @@ router.patch(
 router.delete(
   "/delete-admin/:id",
   auth,
-  role(["admin", "super_admin"]),
+  role(adminRoles),
   validateTaskIdParam,
   deleteTask
 );
