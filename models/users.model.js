@@ -5,7 +5,7 @@ const userRoles = require("../constants/userRoles/userRoles.constants");
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: false },
   lastName: { type: String, required: false },
-  mobile: { type: Number, required: false },
+  mobile: { type: Number, required: true },
   password: { type: String, required: true, select: false },
   role: {
     type: String,
