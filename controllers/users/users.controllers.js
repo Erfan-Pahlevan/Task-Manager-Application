@@ -22,7 +22,7 @@ const registerAdmin = async (req, res) => {
 };
 
 const register = async (req, res) => {
-  const { mobile, password, role } = req.body;
+  const { mobile, password } = req.body;
 
   const findUser = await userService.findByMobile(mobile);
   if (findUser) {
@@ -31,7 +31,7 @@ const register = async (req, res) => {
     });
   }
 
-  const user = await userService.registerUser(mobile, password, role);
+  const user = await userService.registerUser(mobile, password);
 
   res.status(201).json({
     message: "User registered successfully",
@@ -101,7 +101,6 @@ const uploadAvatar = async (req, res) => {
   res.status(200).json(newfile);
 };
 
-// Get all users
 const getAllUsers = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -125,7 +124,6 @@ const getAllUsers = async (req, res) => {
   });
 };
 
-// find user with this
 const getUserDetail = async (req, res) => {
   const { id } = req.params;
   const findUser = await userService.findUserById(id);
@@ -142,7 +140,6 @@ const getUserDetail = async (req, res) => {
   });
 };
 
-// update user with this
 const updateUser = async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
@@ -158,6 +155,34 @@ const updateUser = async (req, res) => {
   res.status(200).json({
     updatedUser,
     message: "user data updated successfully",
+  });
+};
+
+const completeUser = async (req, res) => {
+  const { id } = req.params;
+  const { firstName, lastName } = req.body;
+
+  if (!firstName || !lastName) {
+    return res.status(400).json({
+      message: "firstName and lastName needed!",
+    });
+  }
+
+  const updatedUser = await userService.completeProfile(
+    id,
+    firstName,
+    lastName,
+  );
+
+  if (!updatedUser) {
+    return res.status(404).json({
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    updatedUser,
+    message: "User data updated successfully",
   });
 };
 
@@ -183,5 +208,6 @@ module.exports = {
   getAllUsers,
   getUserDetail,
   updateUser,
+  completeUser,
   deleteUser,
 };

@@ -34,7 +34,7 @@ const auth = async (req, res, next) => {
   }
 };
 
-const isOwner = async (req, res, next) => {
+const isPostOwner = async (req, res, next) => {
   const { userId } = req;
   const { postId } = req.body;
 
@@ -51,7 +51,7 @@ const isOwner = async (req, res, next) => {
   next();
 };
 
-const isSameUser = async (req, res, next) => {
+const isProfileOwner = async (req, res, next) => {
   const { userId } = req;
 
   const { id } = req.params;
@@ -78,7 +78,7 @@ function role(roles) {
     const findUser = await userModel.findById(userId);
 
     if (!findUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Token not recognized" });
     }
 
     console.log(findUser);
@@ -91,4 +91,4 @@ function role(roles) {
   };
 }
 
-module.exports = { auth, isOwner, isSameUser, role };
+module.exports = { auth, isPostOwner, isProfileOwner, role };

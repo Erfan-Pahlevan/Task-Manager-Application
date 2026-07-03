@@ -73,6 +73,21 @@ const updateUser = async (id, updates) => {
   });
 };
 
+const findUser = async (id, firstName, lastName) => {
+  return userModel.findById(id);
+};
+
+const completeProfile = async (id, firstName, lastName) => {
+  const user = await userModel.findById(id);
+  if (!user) return null;
+
+  user.firstName = firstName;
+  user.lastName = lastName;
+  await user.save();
+
+  return user;
+};
+
 const deleteUser = async (id) => {
   return userModel.findByIdAndDelete(id);
 };
@@ -82,10 +97,12 @@ module.exports = {
   verifyToken,
   findByMobile,
   updateUser,
+  findUser,
   findUserById,
   isValidPassword,
   registerUser,
   setImage,
   findAllUsers,
+  completeProfile,
   deleteUser,
 };

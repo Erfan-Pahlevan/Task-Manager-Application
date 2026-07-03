@@ -6,11 +6,12 @@ const rateLimitMiddleware = require("../middlewares/rateLimit.middleware");
 const {
   auth,
   role,
-  isSameUser,
+  isProfileOwner,
 } = require("../middlewares/users/users.middleware");
 
 const {
   validateRegister,
+  validateRegisterAdmin,
   validateLogin,
 } = require("../middlewares/users/users.validation.middleware");
 
@@ -23,6 +24,7 @@ const {
   getAllUsers,
   getUserDetail,
   updateUser,
+  completeUser,
   deleteUser,
 } = require("../controllers/users/users.controllers");
 
@@ -31,18 +33,18 @@ router.get("/", (req, res) => {
 });
 
 router.post(
+  "/register-admin",
+  auth,
+  rateLimitMiddleware(15 * 60 * 1000, 20),
+  validateRegisterAdmin,
+  role(["superadmin"]),
+  registerAdmin,
+);
+router.post(
   "/register",
   rateLimitMiddleware(15 * 60 * 1000, 20),
   validateRegister,
   register,
-);
-router.post(
-  "/register-admin",
-  auth,
-  rateLimitMiddleware(15 * 60 * 1000, 20),
-  validateRegister,
-  role(["superadmin"]),
-  registerAdmin,
 );
 router.post(
   "/login",
@@ -52,24 +54,26 @@ router.post(
 );
 
 router.get("/profile", auth, getProfile);
-router.post("/upload-avatar", auth, upload.single("avatar"), uploadAvatar);
+router.put("/complete-profile/:id", completeUser);
+router.patch("/edit-my-profile/:id", auth, isProfileOwner, updateUser);
 
-router.get("/", getAllUsers);
-router.get("/:id", getUserDetail);
-router.patch(
-  "/edit-my-profile/:id",
-  auth,
-  isSameUser,
-  role(["admin", "user", "superadmin"]),
-  updateUser,
-);
 router.patch(
   "/edit-user-profile/:id",
   auth,
   role(["admin", "superadmin"]),
   updateUser,
 );
-router.put("/complete-profile/:id", updateUser);
-router.delete("/:id", deleteUser);
+
+router.get("/get-list", auth, role(["admin", "superadmin"]), getAllUsers);
+router.get(
+  "/get-detail/:id",
+  auth,
+  role(["admin", "superadmin"]),
+  getUserDetail,
+);
+
+router.delete("/delete/:id", auth, role(["admin", "superadmin"]), deleteUser);
+
+router.post("/upload-avatar", auth, upload.single("avatar"), uploadAvatar);
 
 module.exports = router;
