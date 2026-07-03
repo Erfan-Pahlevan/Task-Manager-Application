@@ -26,6 +26,7 @@ const {
   updateUser,
   completeUser,
   deleteUser,
+  changeUserRole,
 } = require("../controllers/users/users.controllers");
 
 router.get("/", (req, res) => {
@@ -73,6 +74,8 @@ router.get(
 );
 
 router.delete("/delete/:id", auth, role(["admin", "superadmin"]), deleteUser);
+
+router.patch("/change-role/:id", auth, role(["superadmin"]), changeUserRole);
 
 router.post("/upload-avatar", auth, upload.single("avatar"), uploadAvatar);
 

@@ -92,6 +92,14 @@ const deleteUser = async (id) => {
   return userModel.findByIdAndDelete(id);
 };
 
+const changeUserRole = async (id, role) => {
+  const findUser = await userModel.findById(id);
+
+  findUser.role = role;
+  await findUser.save();
+  return findUser;
+};
+
 module.exports = {
   createToken,
   verifyToken,
@@ -105,4 +113,5 @@ module.exports = {
   findAllUsers,
   completeProfile,
   deleteUser,
+  changeUserRole,
 };

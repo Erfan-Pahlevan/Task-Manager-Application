@@ -199,6 +199,24 @@ const deleteUser = async (req, res) => {
   });
 };
 
+const changeUserRole = async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const updateUser = await userService.changeUserRole(id, role);
+
+  if (!updateUser) {
+    res.status(400).json({
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    message: "User role updated successfully",
+    updateUser,
+  });
+};
+
 module.exports = {
   registerAdmin,
   register,
@@ -210,4 +228,5 @@ module.exports = {
   updateUser,
   completeUser,
   deleteUser,
+  changeUserRole,
 };
