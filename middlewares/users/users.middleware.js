@@ -34,23 +34,6 @@ const auth = async (req, res, next) => {
   }
 };
 
-const isPostOwner = async (req, res, next) => {
-  const { userId } = req;
-  const { postId } = req.body;
-
-  const findPost = await postService.findPost(postId);
-
-  if (!findPost) {
-    return res.status(404).json({ message: "Post not found" });
-  }
-
-  if (findPost.user._id.toString() !== userId.toString()) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  next();
-};
-
 const isProfileOwner = async (req, res, next) => {
   const { userId } = req;
 
@@ -91,4 +74,4 @@ function role(roles) {
   };
 }
 
-module.exports = { auth, isPostOwner, isProfileOwner, role };
+module.exports = { auth, isProfileOwner, role };

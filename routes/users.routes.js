@@ -55,7 +55,7 @@ router.post(
 );
 
 router.get("/profile", auth, getProfile);
-router.put("/complete-profile/:id", completeUser);
+router.put("/complete-profile/:id", auth, isProfileOwner, completeUser);
 router.patch("/edit-my-profile/:id", auth, isProfileOwner, updateUser);
 
 router.patch(
