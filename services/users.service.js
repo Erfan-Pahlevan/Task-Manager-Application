@@ -1,3 +1,4 @@
+const userRepository = require("../repositories/users.repositories");
 const userModel = require("../models/users.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -16,11 +17,11 @@ const verifyToken = async (token, JWTSECRET) => {
 };
 
 const findByMobile = async (mobile) => {
-  return userModel.findOne({ mobile }).select("+password");
+  return userRepository.findOne(mobile);
 };
 
 const findUserById = async (userId) => {
-  return userModel.findById(userId).populate("image");
+  return userRepository.findById(userId);
 };
 
 const isValidPassword = async (password, findUser) => {
@@ -35,13 +36,7 @@ async function setImage(fileId, userId) {
 }
 
 const registerUser = async (mobile, password, role) => {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await userModel.create({
-    mobile,
-    password: hashedPassword,
-    role,
-  });
-  return user;
+  return userRepository.create(mobile, password, role);
 };
 
 const findAllUsers = async ({ page, limit, role, search, sort }) => {
@@ -51,34 +46,24 @@ const findAllUsers = async ({ page, limit, role, search, sort }) => {
     filter.role = role;
   }
 
-  if (search) {
-    filter.username = {
-      $regex: search,
-      $options: "i",
-    };
-  }
-
   const options = {
     page,
     limit,
   };
 
-  return userModel.paginate(filter, options);
+  return userRepository.paginate(filter, options);
 };
 
 const updateUser = async (id, updates) => {
-  return userModel.findByIdAndUpdate(id, updates, {
-    returnDocument: "after",
-    runValidators: true,
-  });
+  return userRepository.findByIdAndUpdate(id, updates);
 };
 
-const findUser = async (id, firstName, lastName) => {
-  return userModel.findById(id);
+const findUser = async (id) => {
+  return userRepository.findById(id);
 };
 
 const completeProfile = async (id, firstName, lastName) => {
-  const user = await userModel.findById(id);
+  const user = await userRepository.findById(id);
   if (!user) return null;
 
   user.firstName = firstName;
@@ -89,11 +74,12 @@ const completeProfile = async (id, firstName, lastName) => {
 };
 
 const deleteUser = async (id) => {
-  return userModel.findByIdAndDelete(id);
+  return userRepository.findByIdAndDelete(id);
 };
 
 const changeUserRole = async (id, role) => {
-  const findUser = await userModel.findById(id);
+  const findUser = await userRepository.findById(id);
+  if (!findUser) return null;
 
   findUser.role = role;
   await findUser.save();
