@@ -1,0 +1,561 @@
+openapi: 3.0.0
+info:
+  title: User Management API
+  description: >
+    API for user registration, authentication, profile management,
+    role-based access control, and avatar uploads.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Registration and login
+  - name: Profile
+    description: Current user's own profile
+  - name: Users
+    description: Admin/superadmin user management
+  - name: Uploads
+    description: File uploads
+
+paths:
+  /users/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: A user is already registered with this phone number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /users/register-admin:
+    post:
+      tags: [Auth]
+      summary: Register a new admin (superadmin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterAdminRequest"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: A user is already registered with this phone number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /users/login:
+    post:
+      tags: [Auth]
+      summary: Log in and receive a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /users/profile:
+    get:
+      tags: [Profile]
+      summary: Get the logged-in user's own profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  image:
+                    nullable: true
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                      filename:
+                        type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/complete-profile/{id}:
+    put:
+      tags: [Profile]
+      summary: Complete profile info (first/last name) after registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        "200":
+          description: User data updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedUser:
+                    $ref: "#/components/schemas/User"
+                  message:
+                    type: string
+        "400":
+          description: firstName and lastName needed!
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/edit-my-profile/{id}:
+    patch:
+      tags: [Profile]
+      summary: Edit the caller's own profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/UpdatedUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/edit-user-profile/{id}:
+    patch:
+      tags: [Users]
+      summary: Edit any user's profile (admin/superadmin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/UpdatedUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/get-list:
+    get:
+      tags: [Users]
+      summary: List users with pagination, filtering, and search (admin/superadmin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: role
+          in: query
+          description: Filter by role (admin/superadmin are excluded by default)
+          schema:
+            type: string
+            enum: [user, admin, superadmin]
+        - name: search
+          in: query
+          description: Search term
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users found successfully (or none in the database)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: object
+                    description: Paginated result (mongoose-paginate-v2 shape)
+                    properties:
+                      docs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+                      totalDocs:
+                        type: integer
+                      page:
+                        type: integer
+                      totalPages:
+                        type: integer
+                  message:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /users/get-detail/{id}:
+    get:
+      tags: [Users]
+      summary: Get a single user's detail (admin/superadmin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: User found successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  message:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/delete/{id}:
+    delete:
+      tags: [Users]
+      summary: Delete a user (admin/superadmin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "204":
+          description: User deleted successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /users/change-role/{id}:
+    patch:
+      tags: [Users]
+      summary: Change a user's role (superadmin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin, superadmin]
+      responses:
+        "200":
+          description: User role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updateUser:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /users/upload-avatar:
+    post:
+      tags: [Uploads]
+      summary: Upload an avatar image for the logged-in user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileRecord"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the user
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [mobile, password]
+      properties:
+        mobile:
+          type: string
+          example: "09123456789"
+        password:
+          type: string
+          format: password
+
+    RegisterAdminRequest:
+      allOf:
+        - $ref: "#/components/schemas/RegisterRequest"
+        - type: object
+          properties:
+            role:
+              type: string
+              enum: [admin, superadmin]
+
+    LoginRequest:
+      type: object
+      required: [mobile, password]
+      properties:
+        mobile:
+          type: string
+        password:
+          type: string
+          format: password
+
+    UpdateUserRequest:
+      type: object
+      description: Partial update of a user's editable fields
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mobile:
+          type: string
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+        image:
+          type: string
+          nullable: true
+          description: ObjectId reference to a file, populated in some responses
+
+    FileRecord:
+      type: object
+      properties:
+        _id:
+          type: string
+        originalname:
+          type: string
+        filename:
+          type: string
+        mimetype:
+          type: string
+        size:
+          type: integer
+        path:
+          type: string
+        fieldname:
+          type: string
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    Forbidden:
+      description: Authenticated but not allowed to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    NotFound:
+      description: User not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    UpdatedUser:
+      description: User data updated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              updatedUser:
+                $ref: "#/components/schemas/User"
+              message:
+                type: string

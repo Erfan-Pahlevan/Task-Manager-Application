@@ -9,6 +9,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimitMiddleware = require("./middlewares/rateLimit.middleware");
 
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const swaggerDocument = YAML.load("./swagger.yaml");
+
 async function connectDB() {
   try {
     (await mongoose.connect("mongodb://127.0.0.1:27017/task-manager"),
@@ -24,6 +28,8 @@ const app = express();
 
 // middleware for parsing the body
 app.use(express.json());
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(cors({ origin: "https://frontend.com" }));
 app.use(rateLimitMiddleware());

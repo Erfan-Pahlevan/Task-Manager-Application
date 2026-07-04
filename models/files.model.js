@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const paginate = require("mongoose-paginate-v2");
+const { createBaseModel } = require("../models/base.model");
 
-const fileSchema = new mongoose.Schema({
+const fileSchema = createBaseModel({
   fieldName: { type: String },
   originalName: { type: String },
   fileName: { type: String, required: true },

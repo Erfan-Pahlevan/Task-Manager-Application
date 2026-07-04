@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const paginate = require("mongoose-paginate-v2");
 const userRoles = require("../constants/userRoles/userRoles.constants");
+const { createBaseModel } = require("../models/base.model");
 
-const userSchema = new mongoose.Schema({
+const userSchema = createBaseModel({
   firstName: { type: String, required: false },
   lastName: { type: String, required: false },
   mobile: { type: String, required: true, unique: true },
