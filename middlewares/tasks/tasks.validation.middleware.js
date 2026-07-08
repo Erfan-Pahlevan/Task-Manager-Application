@@ -269,6 +269,30 @@ function validateRemoveAttachment(req, res, next) {
   next();
 }
 
+function validateToggleChecklist(req,res,next){
+
+  const { checklistId } = req.body;
+
+
+  if(!checklistId){
+    return res.status(400).json({
+      status:400,
+      message:"checklistId is required"
+    });
+  }
+
+
+  if(!mongoose.Types.ObjectId.isValid(checklistId)){
+    return res.status(400).json({
+      status:400,
+      message:"checklistId is invalid"
+    });
+  }
+
+
+  next();
+}
+
 module.exports = {
   validateCreateTask,
   validateCreateTaskAdmin,
@@ -277,4 +301,5 @@ module.exports = {
   validateTaskIdParam,
   validateChangeStatus,
   validateRemoveAttachment,
+  validateToggleChecklist
 };

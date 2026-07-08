@@ -12,6 +12,7 @@ const {
   validateTaskIdParam,
   validateChangeStatus,
   validateRemoveAttachment,
+  validateToggleChecklist
 } = require("../middlewares/tasks/tasks.validation.middleware");
 
 const {
@@ -25,13 +26,14 @@ const {
   deleteTask,
   removeAttachment,
   getListAdmin,
+  toggleChecklistItem
 } = require("../controllers/tasks/tasks.controllers");
 
 const adminRoles = [userRoles.ADMIN, userRoles.SUPERADMIN];
 
 router.post("/create", auth, validateCreateTask, createTask);
 
-router.get("/get-my-task", auth, getMyTasks);
+router.get("/get-my-tasks", auth, getMyTasks);
 
 router.get(
   "/get-detail/:id",
@@ -57,6 +59,15 @@ router.patch(
   isTaskOwner,
   validateChangeStatus,
   changeTaskStatus
+);
+
+router.patch(
+  "/update-checklist/:id",
+  auth,
+  validateTaskIdParam,
+  isTaskOwner,
+  validateToggleChecklist,
+  toggleChecklistItem
 );
 
 router.delete(
@@ -110,6 +121,15 @@ router.patch(
   validateTaskIdParam,
   validateChangeStatus,
   changeTaskStatus
+);
+
+router.patch(
+  "/update-checklist-admin/:id",
+  auth,
+  role(adminRoles),
+  validateTaskIdParam,
+  validateToggleChecklist,
+  toggleChecklistItem
 );
 
 router.patch(

@@ -225,6 +225,39 @@ const removeAttachment = async (req, res, next) => {
   }
 };
 
+const toggleChecklistItem = async(req,res,next)=>{
+  try{
+
+    const {id} = req.params;
+    const {checklistId} = req.body;
+
+
+    const task = await taskService.toggleChecklistItem(
+      id,
+      checklistId
+    );
+
+
+    if(!task){
+      return res.status(404).json({
+        status:404,
+        message:"Task or checklist item not found"
+      });
+    }
+
+
+    return res.status(200).json({
+      status:200,
+      data:task,
+      message:"Checklist updated successfully"
+    });
+
+
+  }catch(error){
+    next(error);
+  }
+}
+
 module.exports = {
   createTask,
   createTaskAdmin,
@@ -236,4 +269,5 @@ module.exports = {
   changeTaskStatus,
   deleteTask,
   removeAttachment,
+  toggleChecklistItem
 };
