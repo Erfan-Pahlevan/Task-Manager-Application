@@ -1,15 +1,5 @@
-const taskModel = require("../models/tasks.model");
+const taskRepository = require("../repositories/tasks.repositories");
 const taskStatus = require("../constants/taskStatus/taskStatus.constants");
-
-const populateTask = [
-  {
-    path: "owner",
-    select: "-password",
-  },
-  {
-    path: "attachments",
-  },
-];
 
 function removeUndefinedFields(data) {
   const result = {};
@@ -24,7 +14,7 @@ function removeUndefinedFields(data) {
 }
 // create new task
 const createTask = async (data, ownerId) => {
-  const newTask = await taskModel.create({
+  const newTask = await taskRepository.create({
     title: data.title,
     description: data.description,
     owner: ownerId,
@@ -38,12 +28,10 @@ const createTask = async (data, ownerId) => {
 
 // get detail for a task
 const findTaskById = async (id) => {
-  const task = await taskModel.findById(id).populate(populateTask);
-
-  return task;
+  return taskRepository.findById(id);
 };
 
-// get all myself tasks 
+// get all myself tasks
 const findMyTasks = async ({ userId, page, limit, search, sort, status }) => {
   const filter = {
     owner: userId,
@@ -60,16 +48,22 @@ const findMyTasks = async ({ userId, page, limit, search, sort, status }) => {
     filter.status = status;
   }
 
-  return taskModel.paginate(filter, {
+  return taskRepository.paginate(filter, {
     page,
     limit,
     sort: sort || undefined,
-    populate: populateTask,
   });
 };
 
 // get all tasks by admin
-const findAllTasksAdmin = async ({ page, limit, search, sort, status, owner }) => {
+const findAllTasksAdmin = async ({
+  page,
+  limit,
+  search,
+  sort,
+  status,
+  owner,
+}) => {
   const filter = {};
 
   if (search) {
@@ -87,11 +81,10 @@ const findAllTasksAdmin = async ({ page, limit, search, sort, status, owner }) =
     filter.owner = owner;
   }
 
-  return taskModel.paginate(filter, {
+  return taskRepository.paginate(filter, {
     page,
     limit,
     sort: sort || undefined,
-    populate: populateTask,
   });
 };
 
@@ -106,57 +99,22 @@ const updateTask = async (id, data, canUpdateOwner = false) => {
     owner: canUpdateOwner ? data.owner : undefined,
   });
 
-  const updatedTask = await taskModel
-    .findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-    .populate(populateTask);
-
-  return updatedTask;
+  return taskRepository.findByIdAndUpdate(id, updateData);
 };
 
 // change task status
 const changeTaskStatus = async (id, status) => {
-  const updatedTask = await taskModel
-    .findByIdAndUpdate(
-      id,
-      { status },
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
-    .populate(populateTask);
-
-  return updatedTask;
+  return taskRepository.updateStatus(id, status);
 };
 
 // delete task
 const deleteTask = async (id) => {
-  const deletedTask = await taskModel.findByIdAndDelete(id);
-
-  return deletedTask;
+  return taskRepository.findByIdAndDelete(id);
 };
 
 // for remove task attachment
 const removeAttachment = async (taskId, attachmentId) => {
-  const updatedTask = await taskModel
-    .findByIdAndUpdate(
-      taskId,
-      {
-        $pull: {
-          attachments: attachmentId,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
-    .populate(populateTask);
-
-  return updatedTask;
+  return taskRepository.pullAttachment(taskId, attachmentId);
 };
 
 // for update status by checklist
@@ -165,14 +123,9 @@ const updateTaskStatusByChecklist = (checklist) => {
     return taskStatus.TODO;
   }
 
-  const isAllDone = checklist.every(
-    (item) => item.is_done === true
-  );
+  const isAllDone = checklist.every((item) => item.is_done === true);
 
-  const isNothingDone = checklist.every(
-    (item) => item.is_done === false
-  );
-
+  const isNothingDone = checklist.every((item) => item.is_done === false);
 
   if (isAllDone) {
     return taskStatus.DONE;
@@ -187,34 +140,26 @@ const updateTaskStatusByChecklist = (checklist) => {
 
 // change checklist status
 const toggleChecklistItem = async (taskId, checklistId) => {
-
-  const task = await taskModel.findById(taskId);
+  const task = await taskRepository.findRawById(taskId);
 
   if (!task) {
     return null;
   }
 
-
   const checklistItem = task.checklist.id(checklistId);
-
 
   if (!checklistItem) {
     return null;
   }
 
-
   checklistItem.is_done = !checklistItem.is_done;
 
-
-  task.status = updateTaskStatusByChecklist(
-    task.checklist
-  );
-
+  task.status = updateTaskStatusByChecklist(task.checklist);
 
   await task.save();
 
+  await taskRepository.populate(task);
 
-  await task.populate(populateTask);
   return task;
 };
 module.exports = {
@@ -226,5 +171,5 @@ module.exports = {
   changeTaskStatus,
   deleteTask,
   removeAttachment,
-  toggleChecklistItem
+  toggleChecklistItem,
 };
